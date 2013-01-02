@@ -12,11 +12,11 @@ var http = require("http")
 var updir = '/tmp/'
 
 // uncomment if you want to monitor memory usage during big uploads / slow output...
-// 
-// setInterval(function () {
-//   var rss = ~~(process.memoryUsage().rss / (1024 * 1024))
-//   console.log(rss + 'mb')
-// }, 500)
+
+setInterval(function () {
+  var rss = ~~(process.memoryUsage().rss / (1024 * 1024))
+  console.log(rss + 'mb')
+}, 500)
 
 http.createServer(function (req, res) {
   if (req.url === '/upload' && req.method === 'POST') {
