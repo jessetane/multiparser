@@ -6,6 +6,15 @@
  */
 
 
+function showMemUsage() {
+  var rss = (process.memoryUsage().rss / (1024 * 1024))
+  console.log(rss + 'mb')
+}
+
+setInterval(function () {
+  showMemUsage()
+}, 500)
+
 var fs = require('fs')
 var Multiparser = require('../')
 var http = require("http")
@@ -16,7 +25,11 @@ http.createServer(function (req, res) {
     
     var error = null
     var progress = 0
-    var parser = new Multiparser(req)
+    var parser = new Multiparser(req, {
+      lowWaterMark: 0,
+      highWaterMark: 1024 * 8,
+      bufferSize: 1024 * 8
+    })
     
     parser.on('error', function (err) {
       error = err
@@ -39,7 +52,11 @@ http.createServer(function (req, res) {
        }
      })
      if (part.filename) {
-        var file = fs.createWriteStream(updir + part.filename)
+        var file = fs.createWriteStream(updir + part.filename, {
+          lowWaterMark: 0,
+          highWaterMark: 1024 * 8,
+          bufferSize: 1024 * 8
+        })
         part.destination = file
         part.pipe(file)
      } else {

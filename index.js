@@ -358,7 +358,11 @@ Multiparser.prototype.explain = function () {
 
 Multiparser.prototype.onPartBegin = function () {
   var self = this
-  var part = this.part = new stream.Transform()
+  var part = this.part = new stream.Transform({
+    lowWaterMark: this.lowWaterMark,
+    highWaterMark: this.highWaterMark,
+    bufferSize: this.bufferSize
+  })
   part.name = null
   part.headers = {}
   part.filename = null
