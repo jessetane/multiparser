@@ -71,7 +71,6 @@ function Multiparser(request, opts) {
   this.flags = 0
   this.index = null
   this.markers = {}
-  this.waiting = []
   this.part = null
   this.activeParts = []
   this.endEmitted = false
@@ -153,15 +152,13 @@ Multiparser.prototype._write = function (buffer, cb) {
     if (start !== undefined && start === end) return
     if (self[name]) {
       self[name](buffer, start, end, function (written) {
-        var destWillDrain = self.part.destination &&
-                            self.part.destination._writableState.needDrain
-        if (!written && destWillDrain && cb) {
-          self.waiting.push(cb)
+        if (cb && 
+          !written && 
+          self.part.destination && 
+          self.part.destination._writableState.needDrain) {
+          var wcb = cb
           cb = null
-          self.part.destination.once('drain', function () {
-            var wcb = self.waiting.shift()
-            wcb && wcb()
-          })
+          self.part.destination.once('drain', wcb)
         }
       })
     }
@@ -341,9 +338,7 @@ Multiparser.prototype._write = function (buffer, cb) {
   this.index = index
   this.flags = flags
   
-  if (this.waiting.length === 0) {
-    cb()
-  }
+  cb && cb()
 }
 
 Multiparser.prototype.end = function () {
@@ -358,11 +353,7 @@ Multiparser.prototype.explain = function () {
 
 Multiparser.prototype.onPartBegin = function () {
   var self = this
-  var part = this.part = new stream.Transform({
-    lowWaterMark: 0,
-    highWaterMark: this._writableState.highWaterMark + 1,
-    bufferSize: this._writableState.bufferSize + 1
-  })
+  var part = this.part = new stream.Transform()
   part.name = null
   part.headers = {}
   part.filename = null
@@ -425,7 +416,7 @@ Multiparser.prototype.onHeaderEnd = function () {
 Multiparser.prototype.onHeadersEnd = function () {
   var self = this
   var part = this.part
-  switch(part.transferEncoding){
+  switch (part.transferEncoding) {
     case 'binary':
       this.onPartData = function (b, start, end, cb) {
         var written = part.write(b.slice(start, end))
@@ -447,16 +438,12 @@ Multiparser.prototype.onHeadersEnd = function () {
         var offset = parseInt(part.transferBuffer.length / 4) * 4
         var written = part.write(new Buffer(part.transferBuffer.substring(0, offset), 'base64'))
         part.transferBuffer = part.transferBuffer.substring(offset)
-        if (part.transferBuffer.length === 0) {
-          cb(written)
-        }
+        cb(written)
       }
       this.onPartEnd = function (b, start, end, cb) {
-        if (part.transferBuffer.length) {
-          var written = part.write(new Buffer(part.transferBuffer, 'base64'))
-          cb(written)
-        }
+        var written = part.write(new Buffer(part.transferBuffer, 'base64'))
         part.end()
+        cb(written)
       }
       break
     default:

@@ -6,35 +6,29 @@
  */
 
 
-function showMemUsage() {
-  var rss = (process.memoryUsage().rss / (1024 * 1024))
-  console.log(rss + 'mb')
-}
-
-setInterval(function () {
-  showMemUsage()
-}, 500)
-
 var fs = require('fs')
 var Multiparser = require('../')
 var http = require("http")
 var updir = '/tmp/'
 
+// uncomment if you want to monitor memory usage during big uploads / slow output...
+// 
+// setInterval(function () {
+//   var rss = ~~(process.memoryUsage().rss / (1024 * 1024))
+//   console.log(rss + 'mb')
+// }, 500)
+
 http.createServer(function (req, res) {
-  if (req.url === "/upload" && req.method === "POST") {
-    
+  if (req.url === '/upload' && req.method === 'POST') {
+
     var error = null
     var progress = 0
-    var parser = new Multiparser(req, {
-      lowWaterMark: 0,
-      highWaterMark: 1024 * 2,
-      bufferSize: 1024 * 2
-    })
-    
+    var parser = new Multiparser(req)
+
     parser.on('error', function (err) {
       error = err
     })
-    
+
     parser.on('progress', function (parsed, total) {
       var currentProgress = ~~(parsed / total * 100)
       if (currentProgress != progress) {
@@ -42,28 +36,29 @@ http.createServer(function (req, res) {
         progress = currentProgress
       }
     })
-    
+
     parser.on('part', function (part) {
-     part.on('end', function () {
-       if (part.filename) {
-         console.log('uploaded file "' + part.name + '" to ' + updir + part.filename)
-       } else if (part.value) {
-         console.log('parsed field "' + part.name + '" as "' + part.value + '"')
-       }
-     })
-     if (part.filename) {
-        var file = fs.createWriteStream(updir + part.filename, { highWaterMark: 1024 * 2 })
+      part.on('end', function () {
+        if (part.filename) {
+          console.log('uploaded file "' + part.name + '" to ' + updir + part.filename)
+        } else if (part.value) {
+          console.log('parsed field "' + part.name + '" as "' + part.value + '"')
+        }
+      })
+      
+      if (part.filename) {
+        var file = fs.createWriteStream(updir + part.filename)
         part.destination = file
         part.pipe(file)
-     } else {
-       part.value = ''
-       part.on('readable', function () {
-         part.value += part.read()
-       })
-       part.read(0)
-     }
+      } else {
+        part.value = ''
+        part.on('readable', function () {
+          part.value += part.read()
+        })
+        part.read(0)
+      }
     })
-    
+
     parser.on('end', function () {
       if (error) {
         res.writeHeaders(500)
@@ -72,9 +67,9 @@ http.createServer(function (req, res) {
         res.end('all parsed!')
       }
     })
-    
+
   } else {
-    
+
     res.end('<html>\
       <form enctype="multipart/form-data" method="POST" action="/upload">\
       <input name="fieldup" type="text" /><br>\
@@ -82,6 +77,6 @@ http.createServer(function (req, res) {
       <input type="submit" value="upload" />\
       </form>\
       </html>')
-      
+
   }
 }).listen(8080)
