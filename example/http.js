@@ -27,8 +27,8 @@ http.createServer(function (req, res) {
     var progress = 0
     var parser = new Multiparser(req, {
       lowWaterMark: 0,
-      highWaterMark: 1024 * 8,
-      bufferSize: 1024 * 8
+      highWaterMark: 1024 * 2,
+      bufferSize: 1024 * 2
     })
     
     parser.on('error', function (err) {
@@ -52,11 +52,7 @@ http.createServer(function (req, res) {
        }
      })
      if (part.filename) {
-        var file = fs.createWriteStream(updir + part.filename, {
-          lowWaterMark: 0,
-          highWaterMark: 1024 * 8,
-          bufferSize: 1024 * 8
-        })
+        var file = fs.createWriteStream(updir + part.filename, { highWaterMark: 1024 * 2 })
         part.destination = file
         part.pipe(file)
      } else {
