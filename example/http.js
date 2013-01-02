@@ -31,24 +31,24 @@ http.createServer(function (req, res) {
     })
     
     parser.on('part', function (part) {
-    	part.on('end', function () {
-    		if (part.filename) {
-    			console.log('uploaded file "' + part.name + '" to ' + updir + part.filename)
-    		} else if (part.value) {
-    		  console.log('parsed field "' + part.name + '" as "' + part.value + '"')
-    		}
-    	});
-    	if (part.filename) {
+     part.on('end', function () {
+       if (part.filename) {
+         console.log('uploaded file "' + part.name + '" to ' + updir + part.filename)
+       } else if (part.value) {
+         console.log('parsed field "' + part.name + '" as "' + part.value + '"')
+       }
+     })
+     if (part.filename) {
         var file = fs.createWriteStream(updir + part.filename)
         part.destination = file
         part.pipe(file)
-    	} else {
-    	  part.value = ''
-    	  part.on('readable', function () {
-    	    part.value += part.read()
-    	  })
-    		part.read(0)
-    	}
+     } else {
+       part.value = ''
+       part.on('readable', function () {
+         part.value += part.read()
+       })
+       part.read(0)
+     }
     })
     
     parser.on('end', function () {
@@ -61,6 +61,7 @@ http.createServer(function (req, res) {
     })
     
   } else {
+    
     res.end('<html>\
       <form enctype="multipart/form-data" method="POST" action="/upload">\
       <input name="fieldup" type="text" /><br>\
@@ -68,6 +69,6 @@ http.createServer(function (req, res) {
       <input type="submit" value="upload" />\
       </form>\
       </html>')
+      
   }
-  
 }).listen(8080)

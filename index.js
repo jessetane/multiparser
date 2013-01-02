@@ -78,7 +78,7 @@ function Multiparser(request, opts) {
   this.headerField = ''
   this.headerValue = ''
   this.state = S.START
-    
+  
   request.on('error', function (err) {
     var parts = self.activeParts.slice()
     for (var p in parts) {
