@@ -11,13 +11,6 @@ var Multiparser = require('../')
 var http = require("http")
 var updir = '/tmp/'
 
-// uncomment if you want to monitor memory usage during big uploads / slow output...
-
-setInterval(function () {
-  var rss = ~~(process.memoryUsage().rss / (1024 * 1024))
-  console.log(rss + 'mb')
-}, 500)
-
 http.createServer(function (req, res) {
   if (req.url === '/upload' && req.method === 'POST') {
 
@@ -32,7 +25,8 @@ http.createServer(function (req, res) {
     parser.on('progress', function (parsed, total) {
       var currentProgress = ~~(parsed / total * 100)
       if (currentProgress != progress) {
-        console.log('uploading...', currentProgress, req._readableState.length)
+        console.log('uploading...', currentProgress,
+                    'memory usage:', ~~(process.memoryUsage().rss / (1024 * 1024)) + 'mb')
         progress = currentProgress
       }
     })
