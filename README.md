@@ -11,7 +11,10 @@ A streams2 compatible multipart-form parser. Hacked from [formidable](https://gi
 Formidable currently doesn't work with node >= 9.4. Also a bit cleaner to have a standalone module.
 
 ## How
-The module exports a class `Multiparser` which inherits from `Stream.Writable`. Http request streams can be piped to instances which emit `'part'` events (basically instances of `Stream.PassThrough`) that can then be piped around as needed.
+The module exports a class `Multiparser` which inherits from `Stream.Writable`. Http request streams can be piped to instances which will emit `'part'` events (basically instances of `Stream.PassThrough`) that can then be piped around as needed. 
+
+## Notes
+Since the parser writes directly to the emitted parts' streams, backpressure should depend on where the parts get piped to. Perhaps this can be automated in the future, but for now you have to assign an instance of `Stream.Writable` to `part.destination` if you'd like the parser to exert backpressure on the HTTP request.
 
 ## Usage
 The code below is pretty much straight from `example/http.js`
