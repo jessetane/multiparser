@@ -152,10 +152,11 @@ Multiparser.prototype._write = function (buffer, cb) {
     if (start !== undefined && start === end) return
     if (self[name]) {
       self[name](buffer, start, end, function (written) {
-        if (cb && 
-          !written && 
-          self.part.destination && 
-          self.part.destination._writableState.needDrain) {
+        var willDrain = true
+        if (!self.part.destination || 
+            (self.part.destination._writableState &&
+            !self.part.destination._writableState.needDrain)) willDrain = false
+        if (cb && !written && willDrain) {
           var wcb = cb
           cb = null
           self.part.destination.once('drain', wcb)
