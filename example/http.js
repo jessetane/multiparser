@@ -21,7 +21,7 @@ http.createServer(function (req, res) {
     parser.on('error', function (err) {
       error = err
     })
-
+    
     parser.on('progress', function (parsed, total) {
       var currentProgress = ~~(parsed / total * 100)
       if (currentProgress != progress) {
@@ -42,7 +42,6 @@ http.createServer(function (req, res) {
       
       if (part.filename) {
         var file = fs.createWriteStream(updir + part.filename)
-        part.destination = file
         part.pipe(file)
       } else {
         part.value = ''
@@ -61,9 +60,9 @@ http.createServer(function (req, res) {
         res.end('all parsed!')
       }
     })
-
+    
   } else {
-
+    
     res.end('<html>\
       <form enctype="multipart/form-data" method="POST" action="/upload">\
       <input name="fieldup" type="text" /><br>\
@@ -71,6 +70,6 @@ http.createServer(function (req, res) {
       <input type="submit" value="upload" />\
       </form>\
       </html>')
-
+      
   }
 }).listen(8080)

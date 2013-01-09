@@ -1,6 +1,6 @@
 {
   "name": "multiparser",
   "description": "a streams2 compatible multipart-form parser",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Jesse Tane <jesse.tane@gmail.com>"
 }
