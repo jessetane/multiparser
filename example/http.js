@@ -54,8 +54,8 @@ http.createServer(function (req, res) {
 
     parser.on('end', function () {
       if (error) {
-        res.writeHeaders(500)
-        return res.end(err.message)
+        res.writeHead(500)
+        return res.end(error.message)
       } else {
         res.end('all parsed!')
       }
